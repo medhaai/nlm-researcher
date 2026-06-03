@@ -75,29 +75,50 @@ See `references/query-patterns.md`.
 
 Use NotebookLM MCP tools when available. If not available, use verified `nlm` CLI commands.
 
-### Verified `nlm` CLI command shapes
+## Multiple NotebookLM profiles
+
+NotebookLM research may need to run under different Google/NLM identities for separation between clients, projects, geographies, or domains. The skill must be profile-aware without hard-coding any user's private account names.
+
+1. Resolve the intended profile before creating, adding to, querying, exporting, or deleting notebooks. Use the user's request, local project metadata, environment variables, or an `identity.json`/profile registry stored outside the public skill.
+2. Keep private mappings out of the skill repo. Store account emails, domains, client names, and project-to-profile routing in private config, not in `SKILL.md`.
+3. Verify authentication before use:
 
 ```bash
+uvx --from notebooklm-mcp-cli nlm login --check --profile "$NLM_PROFILE"
+```
+
+4. Use explicit `--profile "$NLM_PROFILE"` on every identity-sensitive `nlm` command instead of switching the global default profile.
+5. If the requested profile is missing in an interactive task, stop and ask the user to log in. If the run is unattended, either fail clearly or use a verified fallback only for public/non-sensitive discovery, and state that the requested profile was unavailable.
+6. When spelling of an email, domain, or profile name changes routing, verify against the private project metadata before acting.
+
+Set a default in the shell or task environment:
+
+```bash
+export NLM_PROFILE="default"
+```
+
+### Verified `nlm` CLI command shapes
+```bash
 # Create notebook
-uvx --from notebooklm-mcp-cli nlm create notebook "RESEARCH-$PROJECT_SLUG"
+uvx --from notebooklm-mcp-cli nlm create notebook "RESEARCH-$PROJECT_SLUG" --profile "$NLM_PROFILE"
 
 # List notebooks
-uvx --from notebooklm-mcp-cli nlm list notebooks --json
+uvx --from notebooklm-mcp-cli nlm list notebooks --json --profile "$NLM_PROFILE"
 
 # Add a local file
-uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --file "$SOURCE_FILE" --wait --wait-timeout 180
+uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --file "$SOURCE_FILE" --wait --wait-timeout 180 --profile "$NLM_PROFILE"
 
 # Add a URL
-uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --url "$SOURCE_URL" --wait --wait-timeout 240
+uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --url "$SOURCE_URL" --wait --wait-timeout 240 --profile "$NLM_PROFILE"
 
 # Add a YouTube source
-uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --youtube "$YOUTUBE_URL" --wait --wait-timeout 600
+uvx --from notebooklm-mcp-cli nlm source add "$NOTEBOOK_ID" --youtube "$YOUTUBE_URL" --wait --wait-timeout 600 --profile "$NLM_PROFILE"
 
 # List sources
-uvx --from notebooklm-mcp-cli nlm source list "$NOTEBOOK_ID"
+uvx --from notebooklm-mcp-cli nlm source list "$NOTEBOOK_ID" --profile "$NLM_PROFILE"
 
 # Query notebook
-uvx --from notebooklm-mcp-cli nlm query notebook "$NOTEBOOK_ID" "$QUESTION" --json --timeout 300
+uvx --from notebooklm-mcp-cli nlm query notebook "$NOTEBOOK_ID" "$QUESTION" --json --timeout 300 --profile "$NLM_PROFILE"
 ```
 
 Known pitfall: `nlm add source ...` is not the verified command form. Use `nlm source add NOTEBOOK_ID --file/--url/--youtube ...`.
