@@ -26,11 +26,22 @@ This repository is a productized public version of an internal workflow. It inte
 
 ## Install
 
+### Fresh install
+
 Copy the `skills/notebooklm-researcher` directory into your Hermes skills directory:
 
 ```bash
 mkdir -p ~/.hermes/skills/research
 cp -R skills/notebooklm-researcher ~/.hermes/skills/research/
+```
+
+### Update an existing install
+
+Use a non-destructive sync so local notes or extra files are not deleted:
+
+```bash
+mkdir -p ~/.hermes/skills/research/notebooklm-researcher
+rsync -a skills/notebooklm-researcher/ ~/.hermes/skills/research/notebooklm-researcher/
 ```
 
 Then list skills from Hermes and load `notebooklm-researcher` when doing NotebookLM-backed research.
@@ -48,6 +59,17 @@ Example CLI checks:
 uvx --from notebooklm-mcp-cli nlm --help
 uvx --from notebooklm-mcp-cli nlm list notebooks --json
 ```
+
+## Auth diagnostic
+
+Before first use, confirm your NotebookLM profile is authenticated:
+
+```bash
+export NLM_PROFILE="${NLM_PROFILE:-default}"
+uvx --from notebooklm-mcp-cli nlm login --check --profile "$NLM_PROFILE"
+```
+
+If this fails, fix auth before trying to create or query notebooks.
 
 ## Privacy model
 
