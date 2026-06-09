@@ -2,15 +2,15 @@
 name: notebooklm-researcher
 description: "High-fidelity source-grounded research workflow using NotebookLM, local artifacts, and concise synthesis."
 version: 1.0.0
-author: NLM Researcher contributors
+author: Hermes Agent
 license: MIT
 platforms: [macos, linux]
 metadata:
   hermes:
-    tags: [research, notebooklm, synthesis, source-grounded, deep-context]
+    tags: [research, notebooklm, source-grounded, synthesis, verification]
 ---
 
-# NLM Researcher
+# NotebookLM Researcher
 
 Use this skill when a research task needs more evidence, more source context, or more durable artifacts than a single chat response can safely handle.
 

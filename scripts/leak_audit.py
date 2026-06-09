@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Simple leak audit for the public NLM Researcher skill repo.
+"""Simple leak audit for a public NotebookLM researcher skill repo.
 
-This is intentionally conservative. Add project-specific private terms before publishing.
+This is intentionally conservative. Add project-specific private terms locally
+before publishing if you need extra coverage.
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -23,22 +25,29 @@ DEFAULT_PATTERNS = [
     r"(?i)private[_ -]?key\s*[:=]",
 ]
 
-# Terms that are not necessarily secrets, but should not appear in this publicized template.
-PRIVATE_CONTEXT_TERMS = [
-    "AI PMO",
-    "AIPMO",
-    "Apple Notes",
-    "WhatsApp",
-    "K0",
-    "T-017",
-    "aqantive",
-    "enkay",
-    "Nirav",
-    "Medha-private",
-]
-
 SKIP_DIRS = {".git", "__pycache__", ".cache", "node_modules"}
 TEXT_SUFFIXES = {".md", ".txt", ".py", ".json", ".yaml", ".yml", ".toml", ".html", ".css", ".js", ""}
+
+
+def load_private_terms() -> list[str]:
+    terms = []
+    env_file = os.environ.get("LEAK_AUDIT_TERMS_FILE")
+    if env_file:
+        path = Path(env_file).expanduser()
+        if path.exists():
+            terms.extend(
+                line.strip()
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            )
+    local_file = Path(".leak_audit_terms.txt")
+    if local_file.exists():
+        terms.extend(
+            line.strip()
+            for line in local_file.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        )
+    return terms
 
 
 def iter_files(root: Path):
@@ -53,6 +62,7 @@ def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     findings = []
     compiled = [(p, re.compile(p)) for p in DEFAULT_PATTERNS]
+    private_terms = load_private_terms()
     for path in iter_files(root):
         try:
             text = path.read_text(encoding="utf-8")
@@ -62,15 +72,12 @@ def main() -> int:
         for lineno, line in enumerate(text.splitlines(), 1):
             for label, regex in compiled:
                 if regex.search(line):
-                    # Allow this script to mention its own generic patterns.
                     if rel.as_posix() == "scripts/leak_audit.py" and label in line:
                         continue
                     findings.append((rel, lineno, label, line.strip()))
-            for term in PRIVATE_CONTEXT_TERMS:
+            for term in private_terms:
                 if term.lower() in line.lower():
-                    if rel.as_posix() == "scripts/leak_audit.py" and term in line:
-                        continue
-                    findings.append((rel, lineno, f"private-context:{term}", line.strip()))
+                    findings.append((rel, lineno, f"private-term:{term}", line.strip()))
     if findings:
         print("Leak audit failed. Review these lines:")
         for rel, lineno, label, line in findings:

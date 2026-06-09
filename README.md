@@ -1,4 +1,4 @@
-# NLM Researcher Skill
+# NotebookLM Researcher Skill
 
 A public, privacy-safe Hermes skill for running high-fidelity research with NotebookLM.
 
@@ -63,6 +63,12 @@ Before publishing changes, run:
 ```bash
 python scripts/leak_audit.py .
 ```
+
+## Quick evaluation prompt
+
+Use this when installing in another Hermes environment:
+
+> Install the `notebooklm-researcher` skill, configure the NotebookLM MCP tool or `nlm` CLI, create a tiny test notebook, add one public source, run one broad query plus one verification query, and then report back with: what installed cleanly, what failed, what needs configuration changes, and any GitHub feedback as an issue or PR comment.
 
 ## Repository layout
 
